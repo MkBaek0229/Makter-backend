@@ -96,9 +96,6 @@ app.get("/api/v1/restaurants/category/:category", restCtrl.restc);
 // 예시: 리뷰 생성
 app.post("/api/v1/reviews", reviewCtrl.createreview);
 
-// 예시: 리뷰 수정
-app.put("/api/v1/reviews/:review_id", reviewCtrl.remotereview);
-
 // 예시: 리뷰 삭제
 app.delete("/api/v1/reviews/:review_id", reviewCtrl.deletereview);
 

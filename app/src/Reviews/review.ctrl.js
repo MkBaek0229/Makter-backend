@@ -16,6 +16,7 @@ const createreview = async (req, res) => {
       [restaurant_id, contents, date, rating, username]
     );
 
+    // 리뷰테이블과 해시테이블이 별도로 존재 둘을 결합해주기 위해서 리뷰생성후 생성된 id를 저장한 변수 reviewId
     const reviewId = reviewRows[0].id;
 
     // 해시태그 정보 저장 및 매핑
@@ -23,7 +24,7 @@ const createreview = async (req, res) => {
       // 이미 존재하는 해시태그인지 확인
       const { rows: existingHashtags } = await pool.query(
         `
-          SELECT id FROM hashtags WHERE tag = $1
+        SELECT id FROM hashtags WHERE contents = $1
         `,
         [tag]
       );
@@ -37,11 +38,11 @@ const createreview = async (req, res) => {
         // 존재하지 않는 경우 새로운 해시태그 추가
         const { rows: newHashtagRows } = await pool.query(
           `
-            INSERT INTO hashtags (category, tag)
-            VALUES ($1, $2)
+            INSERT INTO hashtags (contents)
+            VALUES ($1)
             RETURNING id
           `,
-          ["Custom", tag]
+          [tag]
         );
 
         hashtagId = newHashtagRows[0].id;
@@ -71,33 +72,7 @@ const createreview = async (req, res) => {
   }
 };
 
-const remotereview = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { restaurant_id, contents, username, rating } = req.body;
-    const { rows } = await pool.query(
-      `
-        UPDATE reviews 
-        SET restaurant_id = $1, contents = $2, review_date = CURRENT_TIMESTAMP, username = $4 , rating = $5 
-        WHERE id = $6
-        RETURNING *
-        `,
-      [restaurant_id, contents, username, rating]
-    );
-    res.json({
-      resultCode: "S-1",
-      msg: "성공",
-      data: rows,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      resultCode: "F-1",
-      msg: "에러 발생",
-    });
-  }
-};
-
+// 리뷰 삭제
 const deletereview = async (req, res) => {
   try {
     const { review_id } = req.params;
@@ -149,7 +124,7 @@ const getReviews = async (req, res) => {
         r.contents AS review_contents,
         r.date AS review_date,
         r.rating,
-        h.contents AS hashtag
+        array_agg(h.contents) AS hashtags
       FROM 
         reviews AS r
       INNER JOIN
@@ -158,6 +133,8 @@ const getReviews = async (req, res) => {
         hashtags AS h ON rh.hashtags_id = h.id
       WHERE
         r.restaurant_id = $1
+      GROUP BY
+        r.id, r.username, r.contents, r.date, r.rating;
       `,
       [restaurant_id]
     );
@@ -250,7 +227,6 @@ const getHashtags = async (req, res) => {
 
 export default {
   createreview,
-  remotereview,
   deletereview,
   getReviews,
   userreview,

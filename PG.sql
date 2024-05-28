@@ -88,6 +88,7 @@ CREATE TABLE comments (
 CREATE INDEX idx_comments_post_id ON comments(post_id);
 
 
+
 -- restaurants 테이블에 데이터 삽입
 INSERT INTO restaurants (restaurants_name, address, phone, opening_hours, rating, spicy, sweet, sour, salty, food_type, image, latitude, longitude, food_menu, category) 
 VALUES 

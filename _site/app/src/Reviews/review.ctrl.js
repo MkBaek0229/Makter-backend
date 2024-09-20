@@ -9,13 +9,14 @@ const createreview = async (req, res) => {
     // 리뷰 정보 저장
     const { rows: reviewRows } = await pool.query(
       `
-        INSERT INTO reviews (restaurants_id, contents, review_date, rating, username) 
+        INSERT INTO reviews (restaurant_id, contents, date, rating, username) 
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id
       `,
       [restaurant_id, contents, date, rating, username]
     );
 
+    // 리뷰테이블과 해시테이블이 별도로 존재 둘을 결합해주기 위해서 리뷰생성후 생성된 id를 저장한 변수 reviewId
     const reviewId = reviewRows[0].id;
 
     // 해시태그 정보 저장 및 매핑
@@ -121,19 +122,19 @@ const getReviews = async (req, res) => {
         r.id AS review_id,
         r.username,
         r.contents AS review_contents,
-        r.review_date AS review_date,
+        r.date AS review_date,
         r.rating,
         array_agg(h.contents) AS hashtags
       FROM 
         reviews AS r
-      LEFT JOIN
+      INNER JOIN
         reviews_hashtags AS rh ON r.id = rh.reviews_id
-      LEFT JOIN
+      INNER JOIN
         hashtags AS h ON rh.hashtags_id = h.id
       WHERE
-        r.restaurants_id = $1
+        r.restaurant_id = $1
       GROUP BY
-        r.id, r.username, r.contents, r.review_date, r.rating;
+        r.id, r.username, r.contents, r.date, r.rating;
       `,
       [restaurant_id]
     );

@@ -4,6 +4,7 @@ import pkg from "pg";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import getDirections from "./app/src/Map/map.ctrl.js"; // Kakao Directions API 컨트롤러 임포트
 
 // 컨트롤러 임포트
 import restCtrl from "./app/src/restaurants/restaurants.ctrl.js";
@@ -42,6 +43,9 @@ app.use(
 
 // 정적 파일 제공 설정
 app.use(express.static(path.join(__dirname, "public")));
+
+// Kakao Directions API 호출
+app.get("/api/directions", getDirections); // Kakao Directions API 호출 엔드포인트 추가
 
 // 식당 정보 다건 조회
 app.get("/api/v1/restaurants", restCtrl.restrs);

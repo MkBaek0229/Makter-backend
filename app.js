@@ -11,7 +11,7 @@ import restCtrl from "./app/src/restaurants/restaurants.ctrl.js";
 import reviewCtrl from "./app/src/Reviews/review.ctrl.js";
 import CumintyCtrl from "./app/src/Cuminte/Cuminty.ctrl.js";
 import CommentCtrl from "./app/src/Cuminte/Comments.ctrl.js";
-
+import userCtrl from "./app/src/Users/user.ctrl.js";
 const { Pool } = pkg;
 
 // 현재 모듈의 URL 가져오기
@@ -23,11 +23,11 @@ const __dirname = dirname(__filename);
 const pool = new Pool({
   user: "postgres",
   password: "yMuWQ6WSePBmnPc",
-  host: "maketerbackendpostgre.flycast",
+  host: "127.0.0.1",
   database: "postgres",
   port: 5432,
 });
-
+//maketerbackendpostgre.flycast
 const app = express();
 
 app.use(express.json());
@@ -40,7 +40,38 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "token"],
   })
 );
+const isLoggedIn = (req, res, next) => {
+  if (req.session && req.session.userId) {
+    next();
+  } else {
+    res.status(401).json({
+      resultCode: "F-2",
+      msg: "로그인이 필요합니다.",
+    });
+  }
+};
+app.use((req, res, next) => {
+  res.on("finish", () => {
+    console.log("Response Headers:", res.getHeaders());
+  });
+  next();
+});
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // HTTPS 환경에서만 secure 쿠키 허용
+      httpOnly: true, // 클라이언트에서 쿠키 접근 불가
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 개발 환경에서는 lax, 배포 환경에서는 none
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 1주일
+    },
+  })
+);
+
+app.set("trust proxy", 1); // 프록시 신뢰 설정
 // 정적 파일 제공 설정
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -143,6 +174,15 @@ app.get("/EditPage/:postId", (req, res) => {
 app.get("/Post/:postId", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+app.post("/api/v1/register", userCtrl.register); // 회원가입
+app.post("/api/v1/login", userCtrl.login); // 로그인
+app.post("/api/v1/logout", userCtrl.logout); // 로그아웃
+app.post("/api/v1/reset-password", userCtrl.requestPasswordReset); // 비밀번호 재설정 요청
+app.post("/api/v1/reset-password/:token", userCtrl.resetPassword); // 비밀번호 재설정
+app.get("/api/v1/check-session", userCtrl.checkSession); // 세션 상태 확인
+app.get("/api/v1/profile", isLoggedIn, userCtrl.getProfile); // 프로필 조회 (로그인 필요)
+app.put("/api/v1/profile", isLoggedIn, userCtrl.updateProfile); // 프로필 수정 (로그인 필요)
 
 // API 엔드포인트를 제외한 모든 경로에 대해 index.html 파일 서빙
 app.get("*", (req, res) => {

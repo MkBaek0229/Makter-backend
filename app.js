@@ -22,12 +22,22 @@ const __dirname = dirname(__filename);
 // PostgreSQL Pool 설정
 const pool = new Pool({
   user: "postgres",
-  password: "yMuWQ6WSePBmnPc",
-  host: "127.0.0.1",
+  password: "SxTxKggFywCiaFt",
+  host: "makterbackend.flycast",
   database: "postgres",
   port: 5432,
 });
 //maketerbackendpostgre.flycast
+/*
+ostgres cluster makterbackend created
+  Username:    postgres
+  Password:    SxTxKggFywCiaFt
+  Hostname:    makterbackend.internal
+  Flycast:     fdaa:5:35ca:0:1::63
+  Proxy port:  5432
+  Postgres port:  5433
+  Connection string: postgres://postgres:SxTxKggFywCiaFt@makterbackend.flycast:5432
+*/
 const app = express();
 
 app.use(express.json());

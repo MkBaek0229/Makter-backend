@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import getDirections from "./app/src/Map/map.ctrl.js"; // Kakao Directions API 컨트롤러 임포트
-
+import session from "express-session";
 // 컨트롤러 임포트
 import restCtrl from "./app/src/restaurants/restaurants.ctrl.js";
 import reviewCtrl from "./app/src/Reviews/review.ctrl.js";

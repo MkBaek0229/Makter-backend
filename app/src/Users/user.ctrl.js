@@ -147,11 +147,7 @@ const login = async (req, res) => {
     const { username, password } = req.body;
 
     const { rows } = await pool.query(
-      `
-        SELECT id, username, password, email, full_name, phone_number, created_at
-        FROM users
-        WHERE username = $1
-      `,
+      `SELECT id, username, password, email, full_name FROM users WHERE username = $1`,
       [username]
     );
 
@@ -173,9 +169,6 @@ const login = async (req, res) => {
     }
 
     req.session.userId = user.id;
-
-    req.session.userId = user.id;
-
     req.session.save((err) => {
       if (err) {
         console.error("세션 저장 중 에러 발생:", err);
@@ -185,7 +178,7 @@ const login = async (req, res) => {
         });
       }
 
-      // 세션 저장 성공 후 응답
+      // 세션 저장 후 로그인 성공 응답
       res.json({
         resultCode: "S-1",
         msg: "로그인 성공",
@@ -194,8 +187,6 @@ const login = async (req, res) => {
           username: user.username,
           email: user.email,
           full_name: user.full_name,
-          phone_number: user.phone_number,
-          created_at: user.created_at,
         },
         sessionId: req.sessionID,
       });
@@ -208,6 +199,7 @@ const login = async (req, res) => {
     });
   }
 };
+
 /* end 사용자 로그인 */
 
 /* 사용자 로그아웃 */
@@ -222,12 +214,10 @@ const logout = (req, res) => {
     }
 
     // 클라이언트 측 쿠키를 삭제
-    res.clearCookie("connect.sid", { path: "/" });
-
-    console.log("세션이 성공적으로 파괴되었습니다.");
-    res.json({
-      resultCode: "S-1",
-      msg: "로그아웃 성공",
+    res.clearCookie("connect.sid", {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
     });
   });
 };

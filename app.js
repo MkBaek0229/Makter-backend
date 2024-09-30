@@ -6,17 +6,16 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import getDirections from "./app/src/Map/map.ctrl.js"; // Kakao Directions API 컨트롤러 임포트
 import session from "express-session";
-// 컨트롤러 임포트
 import restCtrl from "./app/src/restaurants/restaurants.ctrl.js";
 import reviewCtrl from "./app/src/Reviews/review.ctrl.js";
 import CumintyCtrl from "./app/src/Cuminte/Cuminty.ctrl.js";
 import CommentCtrl from "./app/src/Cuminte/Comments.ctrl.js";
 import userCtrl from "./app/src/Users/user.ctrl.js";
+
 const { Pool } = pkg;
 
 // 현재 모듈의 URL 가져오기
 const __filename = fileURLToPath(import.meta.url);
-// 디렉토리 경로 가져오기
 const __dirname = dirname(__filename);
 
 // PostgreSQL Pool 설정
@@ -27,27 +26,16 @@ const pool = new Pool({
   database: "postgres",
   port: 5432,
 });
-//maketerbackendpostgre.flycast
-/*
-ostgres cluster makterbackend created
-  Username:    postgres
-  Password:    SxTxKggFywCiaFt
-  Hostname:    makterbackend.internal
-  Flycast:     fdaa:5:35ca:0:1::63
-  Proxy port:  5432
-  Postgres port:  5433
-  Connection string: postgres://postgres:SxTxKggFywCiaFt@makterbackend.flycast:5432
-*/
+
 const app = express();
 
 app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // 명확한 출처를 명시
+    origin: "http://localhost:5173", // 클라이언트 URL
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true, // 자격 증명 허용 (쿠키 전송 허용)
-    allowedHeaders: ["Content-Type", "Authorization", "token"],
+    credentials: true, // 쿠키 허용
   })
 );
 
@@ -61,12 +49,6 @@ const isLoggedIn = (req, res, next) => {
     });
   }
 };
-app.use((req, res, next) => {
-  res.on("finish", () => {
-    console.log("Response Headers:", res.getHeaders());
-  });
-  next();
-});
 
 app.use(
   session({
@@ -74,9 +56,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // HTTPS 환경에서만 secure 쿠키 허용
-      httpOnly: true, // 클라이언트에서 쿠키 접근 불가
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 개발 환경에서는 lax, 배포 환경에서는 none
+      secure: process.env.NODE_ENV === "production", // HTTPS에서만 작동
+      httpOnly: true,
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1주일
     },
   })

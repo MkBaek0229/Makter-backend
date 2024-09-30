@@ -44,12 +44,13 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:5173", // 명확한 출처를 명시
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    credentials: true, // 자격 증명 허용 (쿠키 전송 허용)
     allowedHeaders: ["Content-Type", "Authorization", "token"],
   })
 );
+
 const isLoggedIn = (req, res, next) => {
   if (req.session && req.session.userId) {
     next();
@@ -194,6 +195,8 @@ app.get("/api/v1/check-session", userCtrl.checkSession); // 세션 상태 확인
 app.get("/api/v1/profile", isLoggedIn, userCtrl.getProfile); // 프로필 조회 (로그인 필요)
 app.put("/api/v1/profile", isLoggedIn, userCtrl.updateProfile); // 프로필 수정 (로그인 필요)
 
+app.post("/api/v1/send-verification-code", userCtrl.sendVerificationCode); // SMS 인증코드 전송
+app.post("/api/v1/verify-code", userCtrl.verifyCode); // SMS 인증코드 확인
 // API 엔드포인트를 제외한 모든 경로에 대해 index.html 파일 서빙
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));

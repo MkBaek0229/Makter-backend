@@ -2,8 +2,15 @@ import pkg from "pg";
 import { pool } from "../../../app.js";
 
 const createreview = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({
+      resultCode: "F-2",
+      msg: "로그인이 필요합니다.",
+    });
+  }
   try {
     const { restaurant_id, contents, username, rating, hashtags } = req.body;
+
     const date = new Date().toISOString().slice(0, 10);
 
     // 리뷰 정보 저장

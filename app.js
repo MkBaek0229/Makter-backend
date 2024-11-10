@@ -4,7 +4,7 @@ import pkg from "pg";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import getDirections from "./app/src/Map/map.ctrl.js"; // Kakao Directions API 컨트롤러 임포트
+import getDirections from "./app/src/Map/map.ctrl.js";
 import session from "express-session";
 import restCtrl from "./app/src/restaurants/restaurants.ctrl.js";
 import reviewCtrl from "./app/src/Reviews/review.ctrl.js";
@@ -21,11 +21,22 @@ const __dirname = dirname(__filename);
 // PostgreSQL Pool 설정
 const pool = new Pool({
   user: "postgres",
-  password: "SxTxKggFywCiaFt",
-  host: "makterbackend.flycast",
+  password: "fndbJB3q4HwsD3B",
+  host: "127.0.0.1",
   database: "postgres",
   port: 5432,
 });
+/*
+Postgres cluster makterbackend created
+  Username:    postgres
+  Password:    fndbJB3q4HwsD3B
+  Hostname:    makterbackend.internal
+  Flycast:     fdaa:5:35ca:0:1::65
+  Proxy port:  5432
+  Postgres port:  5433
+  Connection string: postgres://postgres:fndbJB3q4HwsD3B@makterbackend.flycast:5432
+});
+*/
 
 const app = express();
 
@@ -57,8 +68,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production", // HTTPS에서만 작동
-      httpOnly: true,
-      sameSite: "none",
+      httpOnly: false,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 개발 환경에서는 lax, 배포 환경에서는 none
       maxAge: 1000 * 60 * 60 * 24 * 7, // 1주일
     },
   })
@@ -180,6 +191,7 @@ app.put("/api/v1/profile", isLoggedIn, userCtrl.updateProfile); // 프로필 수
 app.post("/api/v1/send-verification-code", userCtrl.sendVerificationCode); // SMS 인증코드 전송
 app.post("/api/v1/verify-code", userCtrl.verifyCode); // SMS 인증코드 확인
 // API 엔드포인트를 제외한 모든 경로에 대해 index.html 파일 서빙
+
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });

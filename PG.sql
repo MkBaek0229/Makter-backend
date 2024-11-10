@@ -16,11 +16,7 @@ ADD COLUMN reset_password_expiry TIMESTAMP;
 -- 유저들의 id를 저장해둘 username 속성이름을 보다 명확하게 변환 username -> user_id
 ALTER TABLE users RENAME COLUMN username TO user_id;
 
--- 가짜 유저 삽입 
-insert into users (user_name, user_email,user_password) values ('김헨리','henry123@naver.com', '1234')
 
--- 유저 조회
-select * from users;
 
 
 
@@ -56,8 +52,6 @@ CREATE TABLE reviews (
 -- 로그인한 사용자의 ID 정보도 같이저장 
 ADD COLUMN author_id INT REFERENCES users(id);
 
--- 인덱스 생성
-CREATE INDEX idx_reviews_restaurants_id ON reviews(restaurants_id);
 
 -- hashtags(해시태그) 테이블 생성
 CREATE TABLE hashtags (
@@ -73,6 +67,13 @@ CREATE TABLE reviews_hashtags (
    FOREIGN KEY (hashtags_id) REFERENCES hashtags(id) ON DELETE CASCADE
 );
 
+CREATE TABLE review_photos (
+   id SERIAL PRIMARY KEY,
+   review_id INT REFERENCES reviews(id) ON DELETE CASCADE,
+   photo_url VARCHAR(255) NOT NULL
+);
+
+
 -- posts 테이블 생성
 CREATE TABLE posts (
    post_id SERIAL PRIMARY KEY,
@@ -80,6 +81,13 @@ CREATE TABLE posts (
    content TEXT NOT NULL,
    post_date TIMESTAMP NOT NULL
 );
+-- 게시물 작성자의 이름을 저장하기 위한 username 속성 추가
+ALTER TABLE posts
+ADD COLUMN username VARCHAR(100) DEFAULT 'unknown' NOT NULL;
+
+
+
+
 CREATE TABLE questions (
   id SERIAL PRIMARY KEY,
   inquirer_name VARCHAR(100) NOT NULL,
@@ -90,6 +98,8 @@ CREATE TABLE questions (
   file_url VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 -- 댓글 테이블 생성
 CREATE TABLE comments (
    commentid SERIAL PRIMARY KEY,
@@ -149,18 +159,7 @@ VALUES
 ('학짬뽕 대전점', '대전 서구 월평로 94-1', '0507-1440-0420', '10:30 - 20:00', 4.5, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230503_281%2F16831217790282neT1_JPEG%2F20230417_114845.jpg', 36.355917, 127.367521, '{"menus":[{"name":"짬뽕"},{"name":"중화볶음밥"}]}', '중식'),
 
 
--- restaurants 테이블에서 특정 데이터 삭제
-DELETE FROM restaurants
-WHERE restaurants_name = '대전 성심당';
 
--- posts 테이블의 모든 데이터 조회
-SELECT * FROM posts;
-
--- restaurants 테이블의 모든 데이터 조회
-SELECT * FROM restaurants;
-
--- 특정 유저 조회
-SELECT * FROM users WHERE user_email = 'alsrl6678@naver.com';
 
 -- 테이블 삭제 (CASCADE 옵션을 사용하여 연관된 외래키를 가진 테이블도 함께 삭제)
 DROP TABLE comments CASCADE;

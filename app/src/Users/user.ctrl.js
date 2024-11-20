@@ -85,10 +85,10 @@ const verifyCode = (req, res) => {
 /* 사용자 회원가입 */
 const register = async (req, res) => {
   try {
-    const { username, password, email, full_name, phone_number } = req.body;
+    const { user_id, password, email, full_name, phone_number } = req.body;
 
     // 입력 값 검증
-    if (!username || !password || !email) {
+    if (!user_id || !password || !email) {
       return res.status(400).json({
         resultCode: "F-1",
         msg: "필수 입력 값이 누락되었습니다.",
@@ -97,8 +97,8 @@ const register = async (req, res) => {
 
     // 사용자 이름 중복 체크
     const { rows: existingUsers } = await pool.query(
-      `SELECT id FROM users WHERE username = $1 OR email = $2`,
-      [username, email]
+      `SELECT id FROM users WHERE user_id = $1 OR email = $2`,
+      [user_id, email]
     );
 
     if (existingUsers.length > 0) {
@@ -116,11 +116,11 @@ const register = async (req, res) => {
     // 사용자 생성
     const { rows } = await pool.query(
       `
-        INSERT INTO users (username, password, email, full_name, phone_number) 
+        INSERT INTO users (user_id, password, email, full_name, phone_number) 
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, username, email, full_name, phone_number, created_at
+        RETURNING id, user_id, email, full_name, phone_number, created_at
       `,
-      [username, hashedPassword, email, full_name, phone_number]
+      [user_id, hashedPassword, email, full_name, phone_number]
     );
 
     const newUser = rows[0];
@@ -144,11 +144,11 @@ const register = async (req, res) => {
 /* 사용자 로그인 */
 const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { user_id, password } = req.body;
 
     const { rows } = await pool.query(
-      `SELECT id, username, password, email, full_name FROM users WHERE username = $1`,
-      [username]
+      `SELECT id, user_id, password, email, full_name FROM users WHERE user_id = $1`,
+      [user_id]
     );
 
     if (rows.length === 0) {
@@ -184,7 +184,7 @@ const login = async (req, res) => {
         msg: "로그인 성공",
         data: {
           id: user.id,
-          username: user.username,
+          user_id: user.user_id,
           email: user.email,
           full_name: user.full_name,
         },
@@ -204,7 +204,6 @@ const login = async (req, res) => {
 
 /* 사용자 로그아웃 */
 const logout = (req, res) => {
-  // 세션 파괴
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({
@@ -213,14 +212,19 @@ const logout = (req, res) => {
       });
     }
 
-    // 클라이언트 측 쿠키를 삭제
     res.clearCookie("connect.sid", {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
     });
+
+    return res.json({
+      resultCode: "S-1",
+      msg: "로그아웃 성공",
+    });
   });
 };
+
 /* end 사용자 로그아웃 */
 
 /* 비밀번호 재설정 */
@@ -342,7 +346,7 @@ const getProfile = async (req, res) => {
   try {
     const { rows } = await pool.query(
       `
-        SELECT id, username, email, full_name, phone_number, created_at
+        SELECT id, user_id, email, full_name, phone_number, created_at
         FROM users
         WHERE id = $1
       `,
@@ -384,7 +388,7 @@ const updateProfile = async (req, res) => {
         UPDATE users
         SET email = $1, full_name = $2, phone_number = $3
         WHERE id = $4
-        RETURNING id, username, email, full_name, phone_number, created_at
+        RETURNING id, user_id, email, full_name, phone_number, created_at
       `,
       [email, full_name, phone_number, req.session.userId]
     );

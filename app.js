@@ -21,21 +21,20 @@ const __dirname = dirname(__filename);
 // PostgreSQL Pool 설정
 const pool = new Pool({
   user: "postgres",
-  password: "fndbJB3q4HwsD3B",
-  host: "127.0.0.1",
+  password: "vDSPz2FG01dQkXA",
+  host: "maketerbackendtest.flycast",
   database: "postgres",
   port: 5432,
 });
 /*
-Postgres cluster makterbackend created
+Postgres cluster maketerbackendtest created
   Username:    postgres
-  Password:    fndbJB3q4HwsD3B
-  Hostname:    makterbackend.internal
-  Flycast:     fdaa:5:35ca:0:1::65
+  Password:    vDSPz2FG01dQkXA
+  Hostname:    maketerbackendtest.internal
+  Flycast:     fdaa:5:35ca:0:1::6d
   Proxy port:  5432
   Postgres port:  5433
-  Connection string: postgres://postgres:fndbJB3q4HwsD3B@makterbackend.flycast:5432
-});
+  Connection string: postgres://postgres:vDSPz2FG01dQkXA@maketerbackendtest.flycast:5432
 */
 
 const app = express();

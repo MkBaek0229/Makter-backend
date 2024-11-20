@@ -147,7 +147,7 @@ const login = async (req, res) => {
     const { user_id, password } = req.body;
 
     const { rows } = await pool.query(
-      `SELECT id, user_id, password, email, full_name FROM users WHERE user_id = $1`,
+      `SELECT id, user_id, password, email, full_name, phone_number, created_at FROM users WHERE user_id = $1`,
       [user_id]
     );
 
@@ -169,6 +169,7 @@ const login = async (req, res) => {
     }
 
     req.session.userId = user.id;
+    req.session.user_id = user.user_id;
     req.session.save((err) => {
       if (err) {
         console.error("세션 저장 중 에러 발생:", err);

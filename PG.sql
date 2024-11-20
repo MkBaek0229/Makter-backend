@@ -81,9 +81,14 @@ CREATE TABLE posts (
    content TEXT NOT NULL,
    post_date TIMESTAMP NOT NULL
 );
+-- 게시물 작성자의 사용자 ID를 저장하기 위한 author_id 속성 추가
+ALTER TABLE posts
+ADD COLUMN author_id INT REFERENCES users(id);
+
 -- 게시물 작성자의 이름을 저장하기 위한 username 속성 추가
 ALTER TABLE posts
 ADD COLUMN username VARCHAR(100) DEFAULT 'unknown' NOT NULL;
+
 
 
 

@@ -9,18 +9,18 @@ const createreview = async (req, res) => {
     });
   }
   try {
-    const { restaurant_id, contents, username, rating, hashtags } = req.body;
-
+    const { restaurant_id, contents, rating, hashtags } = req.body;
+    const username = req.session.username;
+    const userId = req.session.userId; // 세션에서 userId 가져오기
     const date = new Date().toISOString().slice(0, 10);
-
     // 리뷰 정보 저장
     const { rows: reviewRows } = await pool.query(
       `
-        INSERT INTO reviews (restaurants_id, contents, review_date, rating, username) 
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO reviews (restaurant_id, username, contents, date, rating, author_id) 
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id
       `,
-      [restaurant_id, contents, date, rating, username]
+      [restaurant_id, username, contents, date, rating, userId]
     );
 
     const reviewId = reviewRows[0].id;
@@ -81,29 +81,39 @@ const createreview = async (req, res) => {
 // 리뷰 삭제
 const deletereview = async (req, res) => {
   try {
-    const { review_id } = req.params;
+    const userId = req.session.userId; // 로그인된 사용자 ID
+    const { review_id } = req.params; // 삭제할 리뷰 ID
+
+    // 리뷰 삭제 쿼리: 작성자와 로그인된 사용자가 일치할 경우에만 삭제
     const { rows } = await pool.query(
-      "DELETE FROM reviews WHERE id = $1 RETURNING *",
-      [review_id]
+      `
+      DELETE FROM reviews 
+      WHERE id = $1 AND author_id = $2
+      RETURNING *
+      `,
+      [review_id, userId]
     );
 
     if (rows.length > 0) {
-      res.json({
+      // 삭제 성공
+      return res.json({
         resultCode: "S-1",
-        msg: "성공",
+        msg: "리뷰가 성공적으로 삭제되었습니다.",
         data: rows[0],
       });
     } else {
-      res.status(404).json({
-        resultCode: "F-1",
-        msg: "해당 리뷰를 찾을 수 없습니다.",
+      // 삭제할 리뷰가 없거나 권한이 없는 경우
+      return res.status(403).json({
+        resultCode: "F-2",
+        msg: "삭제할 리뷰를 찾을 수 없거나 권한이 없습니다.",
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error("리뷰 삭제 중 오류:", error);
     res.status(500).json({
       resultCode: "F-1",
-      msg: "에러 발생",
+      msg: "서버 오류가 발생했습니다.",
+      error: error.message,
     });
   }
 };
@@ -127,20 +137,21 @@ const getReviews = async (req, res) => {
       SELECT 
         r.id AS review_id,
         r.username,
+        r.author_id,
         r.contents AS review_contents,
-        r.review_date AS review_date,
+        r.date AS review_date,
         r.rating,
         array_agg(h.contents) AS hashtags
       FROM 
         reviews AS r
-      LEFT JOIN
+      INNER JOIN
         reviews_hashtags AS rh ON r.id = rh.reviews_id
-      LEFT JOIN
+      INNER JOIN
         hashtags AS h ON rh.hashtags_id = h.id
       WHERE
-        r.restaurants_id = $1
+        r.restaurant_id = $1
       GROUP BY
-        r.id, r.username, r.contents, r.review_date, r.rating;
+        r.id, r.username, r.contents, r.date, r.rating, r.author_id;
       `,
       [restaurant_id]
     );
@@ -165,12 +176,35 @@ const getReviews = async (req, res) => {
 
 //사용자 리뷰
 const userreview = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({
+      resultCode: "F-2",
+      msg: "로그인이 필요합니다.",
+    });
+  }
+
+  const userId = req.session.userId;
+
   try {
-    const { user_id } = req.params;
     const { rows } = await pool.query(
-      "SELECT * FROM reviews WHERE user_id = $1",
-      [user_id]
+      `
+      SELECT 
+        r.id AS review_id,
+        r.username,
+        r.author_id, 
+        r.contents AS review_contents,
+        r.date AS review_date,
+        r.rating,
+        array_agg(h.contents) AS hashtags
+      FROM reviews AS r
+      LEFT JOIN reviews_hashtags AS rh ON r.id = rh.reviews_id
+      LEFT JOIN hashtags AS h ON rh.hashtags_id = h.id
+      WHERE r.username = $1
+      GROUP BY r.id, r.username, r.contents, r.date, r.rating, r.author_id
+      `,
+      [userId]
     );
+
     res.json({
       resultCode: "S-1",
       msg: "성공",
@@ -190,11 +224,11 @@ const restreview = async (req, res) => {
   try {
     // const { restaurant_id } = req.params;
     const reviews = await pool.query(
-      `SELECT r.*, array_agg(h.contents) AS hashtags
+      `SELECT r.*,  r.author_id, array_agg(h.contents) AS hashtags
        FROM reviews AS r
        LEFT JOIN reviews_hashtags AS rh ON r.id = rh.reviews_id
        LEFT JOIN hashtags AS h ON rh.hashtags_id = h.id
-       GROUP BY r.id`,
+       GROUP BY r.id, r.author_id`,
       [] // restaurant_id 매개변수 전달
     );
     res.json({

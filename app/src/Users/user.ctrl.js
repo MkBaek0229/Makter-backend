@@ -169,25 +169,20 @@ const login = async (req, res) => {
     }
 
     req.session.userId = user.id;
-    req.session.user_id = user.user_id;
     req.session.save((err) => {
       if (err) {
-        console.error("세션 저장 중 에러 발생:", err);
         return res.status(500).json({
           resultCode: "F-1",
           msg: "세션 저장 중 에러 발생",
         });
       }
 
-      // 세션 저장 후 로그인 성공 응답
       res.json({
         resultCode: "S-1",
         msg: "로그인 성공",
         data: {
           id: user.id,
           user_id: user.user_id,
-          email: user.email,
-          full_name: user.full_name,
         },
         sessionId: req.sessionID,
       });
@@ -419,19 +414,17 @@ const updateProfile = async (req, res) => {
 };
 /* end 사용자 프로필 수정 */
 
-/* 사용자 세션 상태 유지*/
+// 사용자 세션 확인
 const checkSession = (req, res) => {
-  console.log("세션 데이터 확인:", req.session); // 세션 데이터 확인
+  console.log("세션 데이터 확인:", req.session);
 
   if (req.session && req.session.userId) {
-    console.log("세션 유효함. 사용자 ID:", req.session.userId);
     return res.status(200).json({
       resultCode: "S-1",
       msg: "세션이 유효합니다.",
       isAuthenticated: true,
       user: {
         id: req.session.userId,
-        // 필요시 추가 정보
       },
     });
   } else {

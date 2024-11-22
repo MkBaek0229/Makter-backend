@@ -48,6 +48,7 @@ app.use(
     credentials: true, // 쿠키 허용
   })
 );
+app.set("trust proxy", 1); // 프록시 신뢰 설정
 
 const isLoggedIn = (req, res, next) => {
   if (req.session && req.session.userId) {

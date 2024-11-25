@@ -9,8 +9,8 @@ const { SolapiMessageService } = pkg; // 필요한 서비스만 가져옴
 
 // SOLAPI 초기화
 const messageService = new SolapiMessageService(
-  "NCS0ULSHJPTIBFOF",
-  "CAWEIM1GEFYKWTJFXTNZSGZTWFVWK8XC"
+  "NCSCH0ELAKJCOIUA",
+  "CCB7GHK07T4HBBND66IYR61H3EUMLLRK"
 );
 // 전화번호 인증코드 발송
 const sendVerificationCode = async (req, res) => {
@@ -32,7 +32,7 @@ const sendVerificationCode = async (req, res) => {
   try {
     const response = await messageService.send({
       to: phone_number,
-      from: "010-4178-1968",
+      from: "010-2848-5397",
       text: `인증코드: ${verificationCode}`,
     });
 
@@ -85,10 +85,10 @@ const verifyCode = (req, res) => {
 /* 사용자 회원가입 */
 const register = async (req, res) => {
   try {
-    const { user_id, password, email, full_name, phone_number } = req.body;
+    const { username, password, email, full_name, phone_number } = req.body;
 
     // 입력 값 검증
-    if (!user_id || !password || !email) {
+    if (!username || !password || !email) {
       return res.status(400).json({
         resultCode: "F-1",
         msg: "필수 입력 값이 누락되었습니다.",
@@ -97,8 +97,8 @@ const register = async (req, res) => {
 
     // 사용자 이름 중복 체크
     const { rows: existingUsers } = await pool.query(
-      `SELECT id FROM users WHERE user_id = $1 OR email = $2`,
-      [user_id, email]
+      `SELECT id FROM users WHERE username = $1 OR email = $2`,
+      [username, email]
     );
 
     if (existingUsers.length > 0) {
@@ -116,11 +116,11 @@ const register = async (req, res) => {
     // 사용자 생성
     const { rows } = await pool.query(
       `
-        INSERT INTO users (user_id, password, email, full_name, phone_number) 
+        INSERT INTO users (username, password, email, full_name, phone_number) 
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, user_id, email, full_name, phone_number, created_at
+        RETURNING id, username, email, full_name, phone_number, created_at
       `,
-      [user_id, hashedPassword, email, full_name, phone_number]
+      [username, hashedPassword, email, full_name, phone_number]
     );
 
     const newUser = rows[0];
@@ -144,11 +144,15 @@ const register = async (req, res) => {
 /* 사용자 로그인 */
 const login = async (req, res) => {
   try {
-    const { user_id, password } = req.body;
+    const { username, password } = req.body;
 
     const { rows } = await pool.query(
-      `SELECT id, user_id, password, email, full_name, phone_number, created_at FROM users WHERE user_id = $1`,
-      [user_id]
+      `
+        SELECT id, username, password, email, full_name, phone_number, created_at
+        FROM users
+        WHERE username = $1
+      `,
+      [username]
     );
 
     if (rows.length === 0) {
@@ -169,20 +173,28 @@ const login = async (req, res) => {
     }
 
     req.session.userId = user.id;
+    req.session.username = user.username;
+
     req.session.save((err) => {
       if (err) {
+        console.error("세션 저장 중 에러 발생:", err);
         return res.status(500).json({
           resultCode: "F-1",
           msg: "세션 저장 중 에러 발생",
         });
       }
 
+      // 세션 저장 성공 후 응답
       res.json({
         resultCode: "S-1",
         msg: "로그인 성공",
         data: {
           id: user.id,
-          user_id: user.user_id,
+          username: user.username,
+          email: user.email,
+          fullName: user.full_name,
+          phone_number: user.phone_number,
+          created_at: user.created_at,
         },
         sessionId: req.sessionID,
       });
@@ -195,7 +207,6 @@ const login = async (req, res) => {
     });
   }
 };
-
 /* end 사용자 로그인 */
 
 /* 사용자 로그아웃 */
@@ -210,17 +221,18 @@ const logout = (req, res) => {
 
     res.clearCookie("connect.sid", {
       path: "/",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      secure: process.env.NODE_ENV === "production", // HTTPS 환경에서만 secure 쿠키 허용
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 개발 환경에서는 lax, 배포 환경에서는 none
+      maxAge: 0, // 쿠키 즉시 만료
     });
 
-    return res.json({
+    console.log("세션이 성공적으로 파괴되었습니다.");
+    res.json({
       resultCode: "S-1",
       msg: "로그아웃 성공",
     });
   });
 };
-
 /* end 사용자 로그아웃 */
 
 /* 비밀번호 재설정 */
@@ -342,7 +354,7 @@ const getProfile = async (req, res) => {
   try {
     const { rows } = await pool.query(
       `
-        SELECT id, user_id, email, full_name, phone_number, created_at
+        SELECT id, username, email, full_name, phone_number, created_at
         FROM users
         WHERE id = $1
       `,
@@ -384,7 +396,7 @@ const updateProfile = async (req, res) => {
         UPDATE users
         SET email = $1, full_name = $2, phone_number = $3
         WHERE id = $4
-        RETURNING id, user_id, email, full_name, phone_number, created_at
+        RETURNING id, username, email, full_name, phone_number, created_at
       `,
       [email, full_name, phone_number, req.session.userId]
     );
@@ -414,19 +426,55 @@ const updateProfile = async (req, res) => {
 };
 /* end 사용자 프로필 수정 */
 
-// 사용자 세션 확인
-const checkSession = (req, res) => {
-  console.log("세션 데이터 확인:", req.session);
+/* 사용자 세션 상태 유지*/
+/* 사용자 세션 상태 유지 */
+const checkSession = async (req, res) => {
+  console.log("세션 데이터 확인:", req.session); // 세션 데이터 확인
 
   if (req.session && req.session.userId) {
-    return res.status(200).json({
-      resultCode: "S-1",
-      msg: "세션이 유효합니다.",
-      isAuthenticated: true,
-      user: {
-        id: req.session.userId,
-      },
-    });
+    try {
+      // 데이터베이스에서 사용자 정보 조회
+      const { rows } = await pool.query(
+        `
+          SELECT id, username, email, full_name, phone_number, created_at
+          FROM users
+          WHERE id = $1
+        `,
+        [req.session.userId]
+      );
+
+      if (rows.length === 0) {
+        return res.status(401).json({
+          resultCode: "F-2",
+          msg: "세션이 만료되었거나 유효하지 않습니다.",
+          isAuthenticated: false,
+        });
+      }
+
+      const user = rows[0];
+
+      console.log("세션 유효함. 사용자 ID:", req.session.userId);
+      return res.status(200).json({
+        resultCode: "S-1",
+        msg: "세션이 유효합니다.",
+        isAuthenticated: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          full_name: user.full_name,
+          phone_number: user.phone_number,
+          created_at: user.created_at,
+        },
+      });
+    } catch (error) {
+      console.error("세션 확인 중 에러 발생:", error);
+      return res.status(500).json({
+        resultCode: "F-1",
+        msg: "서버 에러 발생",
+        isAuthenticated: false,
+      });
+    }
   } else {
     return res.status(401).json({
       resultCode: "F-2",
@@ -435,6 +483,7 @@ const checkSession = (req, res) => {
     });
   }
 };
+/* end 사용자 세션 상태 유지 */
 
 /* end 사용자 세션 상태 유지*/
 export default {

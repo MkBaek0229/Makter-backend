@@ -8,11 +8,13 @@ const createreview = async (req, res) => {
       msg: "로그인이 필요합니다.",
     });
   }
+
   try {
     const { restaurant_id, contents, rating, hashtags } = req.body;
     const username = req.session.username;
     const userId = req.session.userId; // 세션에서 userId 가져오기
     const date = new Date().toISOString().slice(0, 10);
+
     // 리뷰 정보 저장
     const { rows: reviewRows } = await pool.query(
       `
@@ -23,6 +25,7 @@ const createreview = async (req, res) => {
       [restaurant_id, username, contents, date, rating, userId]
     );
 
+    // 리뷰테이블과 해시테이블이 별도로 존재 둘을 결합해주기 위해서 리뷰생성후 생성된 id를 저장한 변수 reviewId
     const reviewId = reviewRows[0].id;
 
     // 해시태그 정보 저장 및 매핑

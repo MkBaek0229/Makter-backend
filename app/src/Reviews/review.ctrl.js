@@ -222,7 +222,6 @@ const userreview = async (req, res) => {
   }
 };
 
-//유저가 작성한 리뷰
 const userReviews = async (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({
@@ -241,7 +240,7 @@ const userReviews = async (req, res) => {
         r.contents AS review_content,
         r.date AS review_date,
         r.rating,
-        res.name AS restaurant_name,
+        res.restaurants_name AS restaurant_name,
         array_agg(h.contents) AS hashtags
       FROM 
         reviews r
@@ -254,7 +253,7 @@ const userReviews = async (req, res) => {
       WHERE 
         r.author_id = $1
       GROUP BY 
-        r.id, res.name, r.contents, r.date, r.rating;
+        r.id, res.restaurants_name, r.contents, r.date, r.rating;
       `,
       [userId]
     );
@@ -265,7 +264,7 @@ const userReviews = async (req, res) => {
       data: rows,
     });
   } catch (error) {
-    console.error("Error fetching user reviews:", error);
+    console.error("Error fetching user reviews:", error.stack || error.message);
     res.status(500).json({
       resultCode: "F-1",
       msg: "유저 리뷰 조회 실패",
@@ -273,6 +272,7 @@ const userReviews = async (req, res) => {
     });
   }
 };
+
 //식당 리뷰
 const restreview = async (req, res) => {
   try {

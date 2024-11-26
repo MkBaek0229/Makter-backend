@@ -12,9 +12,7 @@ CREATE TABLE users (
 ALTER TABLE users
 ADD COLUMN reset_password_token VARCHAR(100),
 ADD COLUMN reset_password_expiry TIMESTAMP;
-
--- 유저들의 id를 저장해둘 username 속성이름을 보다 명확하게 변환 username -> user_id
-ALTER TABLE users RENAME COLUMN username TO user_id;
+SELECT * from users ;
 
 
 
@@ -24,7 +22,7 @@ ALTER TABLE users RENAME COLUMN username TO user_id;
 CREATE TABLE restaurants (
    restaurants_id SERIAL PRIMARY KEY,
    restaurants_name VARCHAR(100) NOT NULL,
-   address VARCHAR(100) NOT NULL,
+   address VARCHAR(255) NOT NULL,
    phone VARCHAR(100) NOT NULL,
    opening_hours VARCHAR(100) NOT NULL,
    rating FLOAT NOT NULL,
@@ -33,7 +31,7 @@ CREATE TABLE restaurants (
    sour FLOAT NOT NULL,
    salty FLOAT NOT NULL,
    food_type VARCHAR(20) NOT NULL,
-   image VARCHAR(255) NOT NULL,
+   image VARCHAR(500) NOT NULL,
    latitude DECIMAL(10, 8) NOT NULL,
    longitude DECIMAL(11, 8) NOT NULL,
    category VARCHAR(100),
@@ -50,6 +48,7 @@ CREATE TABLE reviews (
    restaurant_id INT NOT NULL REFERENCES restaurants(restaurants_id)
 );
 -- 로그인한 사용자의 ID 정보도 같이저장 
+ALTER TABLE reviews
 ADD COLUMN author_id INT REFERENCES users(id);
 
 
@@ -91,7 +90,7 @@ ADD COLUMN username VARCHAR(100) DEFAULT 'unknown' NOT NULL;
 
 
 
-
+SHOW DATABASE 
 
 CREATE TABLE questions (
   id SERIAL PRIMARY KEY,
@@ -107,10 +106,12 @@ CREATE TABLE questions (
 
 -- 댓글 테이블 생성
 CREATE TABLE comments (
-   commentid SERIAL PRIMARY KEY,
-   comment_text TEXT NOT NULL,
-   comment_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-   post_id INT NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE
+   id SERIAL PRIMARY KEY,
+   comment_text CHAR(100) NOT NULL,
+   comment_date CHAR(100) NOT NULL,
+   username VARCHAR(100) NOT NULL,
+   author_id INT REFERENCES users(id),
+   post_id INT NOT NULL REFERENCES posts(post_id)
 );
 
 -- 인덱스 생성
@@ -156,12 +157,12 @@ VALUES
 ('스시정', '상대동 471-8', '0507-1393-3691', '11:30 - 22:00', 4.6, 5, 4, 4, 4, 'Japanese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fpup-review-phinf.pstatic.net%2FMjAyNDA2MDZfMTc4%2FMDAxNzE3NjY4NzU5MzUw.EO4Uy4w4G67b799c0xcGbDUL1HnXvZI4Etkb-uFHI4kg.7nRVe-3oixa2YWk9do6phSbMBkH5A66NTbX0E_zHPO4g.JPEG%2F17176687499148234119565745312390.jpg%3Ftype%3Dw1500_60_sharpen', 36.346364, 127.339209, '{"menus":[{"name":"모둠초밥 세트"},{"name":"반반초밥세트"}]}', '일식'),
 ('갓포회담 대전봉명점', '봉명동 675-3', '0507-1485-6334', '11:30 - 22:00', 4.8, 5, 4, 4, 5, 'Japanese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fnaverbooking-phinf.pstatic.net%2F20240422_38%2F1713781858406mw2XF_JPEG%2F230701_%25C7%25C1%25B7%25D2%25B4%25F5%25C7%25E3%25B5%25E9_4.jpg', 36.357971, 127.350346, '{"menus":[{"name":"런치스페셜코스"},{"name":"모둠회"}]}', '일식'),
 ('고래밥', '관저동 1215', '0507-1354-3353', '11:30 - 23:00', 4.7, 4, 5, 4, 4, 'Japanese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20240318_3%2F171075544252016NSJ_JPEG%2F20220408_212611.jpg', 36.301293, 127.338680, '{"menus":[{"name":"고래모듬장정식"},{"name":"미너스페셜"}]}', '일식'),
-('아비꼬 롯데백화점 대전점', '괴정동 423-1', '0507-1317-2992', '10:30 - 20:00', 4.4, 5, 4, 4, 5, 'Japanese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20240418_132%2F1713404743755KSWG4_JPEG%2F1KakaoTalk_Photo_2023-01-31-12-21-34_003.jpeg', 36.340594, 127.389583, '{"menus":[{"name":"100시간카레"},{"name":"버섯카레"}]}', '일식');
+('아비꼬 롯데백화점 대전점', '괴정동 423-1', '0507-1317-2992', '10:30 - 20:00', 4.4, 5, 4, 4, 5, 'Japanese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20240418_132%2F1713404743755KSWG4_JPEG%2F1KakaoTalk_Photo_2023-01-31-12-21-34_003.jpeg', 36.340594, 127.389583, '{"menus":[{"name":"100시간카레"},{"name":"버섯카레"}]}', '일식'),
 ('상하이양꼬치 반석점', '반석동 630-2', '0507-1442-9092', '17:00 - 23:00', 4.5, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230623_69%2F16875019445094JCFl_JPEG%2FIMG_2597.JPG', 36.393094, 127.312142, '{"menus":[{"name":"고급양고기"},{"name":"모둠꼬치"}]}', '중식'),
 ('태원', '대전 서구 문정로 19', '0507-1436-8838', '10:30 - 21:15', 4.3, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20150825_20%2F1440480335175wqJrc_JPEG%2F166775545553271_0.jpg', 36.346165, 127.381724, '{"menus":[{"name":"등심탕수육"},{"name":"삼선짬뽕"}]}', '중식'),
 ('진신', '원신흥동 508-9', '0507-1412-5089', '11:00 - 21:00', 4.5, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fpup-review-phinf.pstatic.net%2FMjAyNDA2MDdfMTc4%2FMDAxNzE3NzMzMzYyMjA1.weOyDuVKUTlGFq-3RQ76ENocHK8ACVODyGz3ET-npgAg.Ngx0hAEbW42oKZYLvtHpMPdYwlqMqv0_TksW4W-Wi90g.JPEG%2F94CEB657-1B05-47A7-91FC-570AEE87DF2E.jpeg%3Ftype%3Dw1500_60_sharpen', 36.338889, 127.344254, '{"menus":[{"name":"짜장면"},{"name":"짬뽕"}]}', '중식'),
 ('조기종의 향미각', '용문동 275-3', '042-536-8252', '10:30 - 21:00', 4.5, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20220711_176%2F1657519512775gdI9C_JPEG%2F20220223_075910.jpg', 36.335487, 127.389166, '{"menus":[{"name":"짜장면"},{"name":"새우볶음밥"}]}', '중식'),
-('학짬뽕 대전점', '대전 서구 월평로 94-1', '0507-1440-0420', '10:30 - 20:00', 4.5, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230503_281%2F16831217790282neT1_JPEG%2F20230417_114845.jpg', 36.355917, 127.367521, '{"menus":[{"name":"짬뽕"},{"name":"중화볶음밥"}]}', '중식'),
+('학짬뽕 대전점', '대전 서구 월평로 94-1', '0507-1440-0420', '10:30 - 20:00', 4.5, 5, 5, 5, 5, 'Chinese', 'https://search.pstatic.net/common/?src=https%3A%2F%2Fldb-phinf.pstatic.net%2F20230503_281%2F16831217790282neT1_JPEG%2F20230417_114845.jpg', 36.355917, 127.367521, '{"menus":[{"name":"짬뽕"},{"name":"중화볶음밥"}]}', '중식');
 
 
 
@@ -173,6 +174,7 @@ DROP TABLE reviews CASCADE;
 DROP TABLE restaurants CASCADE;
 DROP TABLE reviews_hashtags CASCADE;
 DROP TABLE hashtags CASCADE;
+DROP TABLE users CASCADE;
 -- users 테이블 삭제 (IF EXISTS 옵션 사용하여 테이블이 존재하는 경우에만 삭제)
 DROP TABLE IF EXISTS users CASCADE;
 
@@ -180,3 +182,24 @@ DROP TABLE IF EXISTS users CASCADE;
 UPDATE restaurants
 SET phone = '042-539-8148'
 WHERE restaurants_name = '금복집';
+
+
+SELECT 
+    r.id AS review_id,
+    r.contents AS review_content,
+    r.date AS review_date,
+    r.rating,
+    res.restaurants_name AS restaurant_name, -- 컬럼 이름 수정
+    array_agg(h.contents) AS hashtags
+FROM 
+    reviews r
+JOIN 
+    restaurants res ON r.restaurant_id = res.restaurants_id
+LEFT JOIN 
+    reviews_hashtags rh ON r.id = rh.reviews_id
+LEFT JOIN 
+    hashtags h ON rh.hashtags_id = h.id
+WHERE 
+    r.author_id = 1 -- 적절한 author_id 값으로 수정 (정수 값이므로 따옴표 제거)
+GROUP BY 
+    r.id, res.restaurants_name, r.contents, r.date, r.rating;

@@ -98,6 +98,7 @@ app.get("/api/v1/post/:post_id", CumintyCtrl.post);
 app.post("/api/v1/post", CumintyCtrl.createpost);
 app.put("/api/v1/post/:post_id", CumintyCtrl.remotepost);
 app.delete("/api/v1/post/:post_id", CumintyCtrl.deletepost);
+app.get("/api/v1/user-posts", isLoggedIn, CumintyCtrl.userPosts); // 유저 커뮤니티 글 조회
 
 // 댓글 관련 API
 app.get("/api/v1/comments", CommentCtrl.comments);

@@ -184,11 +184,55 @@ const deletepost = async (req, res) => {
     });
   }
 };
+const userPosts = async (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({
+      resultCode: "F-2",
+      msg: "로그인이 필요합니다.",
+    });
+  }
 
+  const userId = req.session.userId;
+
+  try {
+    const query = `
+      SELECT 
+        p.post_id,
+        p.title,
+        p.content,
+        p.post_date,
+        p.username
+      FROM 
+        posts p
+      JOIN 
+        users u ON p.author_id = u.id
+      WHERE 
+        p.author_id = $1
+      ORDER BY 
+        p.post_date DESC
+    `;
+
+    const { rows } = await pool.query(query, [userId]);
+
+    res.json({
+      resultCode: "S-1",
+      msg: "유저 작성 글 조회 성공",
+      data: rows,
+    });
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).json({
+      resultCode: "F-1",
+      msg: "유저 작성 글 조회 실패",
+      error: error.message,
+    });
+  }
+};
 export default {
   posts,
   post,
   createpost,
   remotepost,
   deletepost,
+  userPosts,
 };

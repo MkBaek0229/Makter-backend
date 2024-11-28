@@ -87,6 +87,9 @@ const deletereview = async (req, res) => {
     const userId = req.session.userId; // 로그인된 사용자 ID
     const { review_id } = req.params; // 삭제할 리뷰 ID
 
+    console.log("Session userId:", userId);
+    console.log("Received review_id:", review_id);
+
     // 리뷰 삭제 쿼리: 작성자와 로그인된 사용자가 일치할 경우에만 삭제
     const { rows } = await pool.query(
       `
@@ -96,6 +99,8 @@ const deletereview = async (req, res) => {
       `,
       [review_id, userId]
     );
+
+    console.log("Delete Query Result:", rows);
 
     if (rows.length > 0) {
       // 삭제 성공

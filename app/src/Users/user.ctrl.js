@@ -390,6 +390,19 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { email, full_name, phone_number } = req.body;
+    console.log("Received data for update:", {
+      email,
+      full_name,
+      phone_number,
+    });
+    console.log("Session user ID:", req.session.userId);
+
+    if (!req.session.userId) {
+      return res.status(401).json({
+        resultCode: "F-1",
+        msg: "로그인이 필요합니다.",
+      });
+    }
 
     const { rows } = await pool.query(
       `
@@ -409,6 +422,7 @@ const updateProfile = async (req, res) => {
     }
 
     const updatedUser = rows[0];
+    console.log("Updated user:", updatedUser); // 업데이트된 데이터 확인
 
     res.json({
       resultCode: "S-1",
@@ -416,18 +430,19 @@ const updateProfile = async (req, res) => {
       data: updatedUser,
     });
   } catch (error) {
-    console.error("Error updating user profile:", error);
+    console.error("Error updating user profile:", error.message);
     res.status(500).json({
-      resultCode: "F-1",
+      resultCode: "F-3",
       msg: "서버 에러 발생",
       error: error.message,
     });
   }
 };
+
 /* end 사용자 프로필 수정 */
 
 /* 사용자 세션 상태 유지*/
-/* 사용자 세션 상태 유지 */
+
 const checkSession = async (req, res) => {
   console.log("세션 데이터 확인:", req.session); // 세션 데이터 확인
 

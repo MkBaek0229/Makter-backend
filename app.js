@@ -118,8 +118,8 @@ app.post("/api/v1/logout", userCtrl.logout);
 app.post("/api/v1/reset-password", userCtrl.requestPasswordReset);
 app.post("/api/v1/reset-password/:token", userCtrl.resetPassword);
 app.get("/api/v1/check-session", userCtrl.checkSession);
-app.get("/api/v1/profile", isLoggedIn, userCtrl.getProfile);
-app.put("/api/v1/profile", isLoggedIn, userCtrl.updateProfile);
+app.get("/api/v1/getprofile", isLoggedIn, userCtrl.getProfile);
+app.put("/api/v1/updateprofile", isLoggedIn, userCtrl.updateProfile);
 app.post("/api/v1/send-verification-code", userCtrl.sendVerificationCode);
 app.post("/api/v1/verify-code", userCtrl.verifyCode);
 

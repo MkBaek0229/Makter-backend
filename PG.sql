@@ -14,6 +14,10 @@ ADD COLUMN reset_password_token VARCHAR(100),
 ADD COLUMN reset_password_expiry TIMESTAMP;
 SELECT * from users ;
 
+SELECT * 
+FROM LikeTable 
+WHERE user_id = 1;
+
 
 
 
@@ -36,6 +40,13 @@ CREATE TABLE restaurants (
    longitude DECIMAL(11, 8) NOT NULL,
    category VARCHAR(100),
    food_menu JSONB
+);
+-- 설문조사용 식당 카드
+CREATE TABLE LikeTable (
+   id SERIAL PRIMARY KEY,
+   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+   restaurants_id INT NOT NULL REFERENCES restaurants(restaurants_id) ON DELETE CASCADE,
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- reviews 테이블 생성
@@ -116,7 +127,7 @@ CREATE TABLE comments (
 
 -- 인덱스 생성
 CREATE INDEX idx_comments_post_id ON comments(post_id);
-
+SELECT * FROM LikeTable;
 -- restaurants 테이블에 데이터 삽입
 INSERT INTO restaurants (restaurants_name, address, phone, opening_hours, rating, spicy, sweet, sour, salty, food_type, image, latitude, longitude, food_menu, category) 
 VALUES 

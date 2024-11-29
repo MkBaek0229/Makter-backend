@@ -81,9 +81,10 @@ app.get("/api/directions", getDirections);
 
 // 식당 관련 API
 app.get("/api/v1/restaurants", restCtrl.restrs);
-app.get("/api/v1/restaurants/:restaurants_id", restCtrl.restr);
+app.get("/api/v1/restaurants/id/:restaurants_id", restCtrl.restr);
 app.get("/api/v1/restaurants/category/:category", restCtrl.restc);
-
+app.post("/api/v1/restaurants/likes", restCtrl.saveLikes); // 선호 식당 저장
+app.get("/api/v1/restaurants/getlikes", restCtrl.getLikes); // 선호 식당 조회
 // 리뷰 관련 API
 app.post("/api/v1/reviews", reviewCtrl.createreview);
 app.delete("/api/v1/reviews/:review_id", reviewCtrl.deletereview);

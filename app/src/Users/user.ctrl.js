@@ -9,8 +9,8 @@ const { SolapiMessageService } = pkg; // 필요한 서비스만 가져옴
 
 // SOLAPI 초기화
 const messageService = new SolapiMessageService(
-  "NCSCH0ELAKJCOIUA",
-  "CCB7GHK07T4HBBND66IYR61H3EUMLLRK"
+  process.env.SOLAPI_API_KEY, // API Key
+  process.env.SOLAPI_API_SECRET // Secret Key
 );
 // 전화번호 인증코드 발송
 const sendVerificationCode = async (req, res) => {

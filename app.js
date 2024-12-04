@@ -4,14 +4,16 @@ import pkg from "pg";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
-import getDirections from "./app/src/Map/map.ctrl.js";
+import { getDirections, tashu } from "./app/src/Map/map.ctrl.js";
 import session from "express-session";
 import restCtrl from "./app/src/restaurants/restaurants.ctrl.js";
 import reviewCtrl from "./app/src/Reviews/review.ctrl.js";
 import CumintyCtrl from "./app/src/Cuminte/Cuminty.ctrl.js";
 import CommentCtrl from "./app/src/Cuminte/Comments.ctrl.js";
 import userCtrl from "./app/src/Users/user.ctrl.js";
+import dotenv from "dotenv"; // 추가
 
+dotenv.config(); // 추가: .env 파일의 환경 변수를 로드합니다.
 const { Pool } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,7 +42,10 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "https://teste-marketer-app.vercel.app", // 배포된 프론트엔드 URL
+      "http://localhost:5173", // 로컬 개발 환경 (필요 시 추가)
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -66,7 +71,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      httpOnly: false,
+      httpOnly: true,
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
@@ -78,7 +83,7 @@ app.set("trust proxy", 1);
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/api/directions", getDirections);
-
+app.get("/api/tashu", tashu);
 // 식당 관련 API
 app.get("/api/v1/restaurants", restCtrl.restrs);
 app.get("/api/v1/restaurants/id/:restaurants_id", restCtrl.restr);

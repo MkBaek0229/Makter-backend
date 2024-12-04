@@ -1,13 +1,16 @@
 import axios from "axios";
 
+import dotenv from "dotenv";
+
+dotenv.config(); // .env 파일의 환경 변수를 로드합니다.
+
 const limitDecimals = (coord) => {
   return parseFloat(coord).toFixed(6); // 소수점 6자리로 제한
 };
 
 const getDirections = async (req, res) => {
   let { origin, destination } = req.query;
-  const apiKey =
-    process.env.VITE_KAKAO_REST_API_KEY || "92be558050bf327c8f008ccd01021afd";
+  const apiKey = process.env.VITE_KAKAO_REST_API_KEY;
 
   // 소수점 이하 자릿수를 제한
   const originCoords = origin.split(",");
@@ -46,5 +49,34 @@ const getDirections = async (req, res) => {
     });
   }
 };
+const tashu = async (req, res) => {
+  console.log("tashu 함수 시작");
+  try {
+    const apiUrl = "https://bikeapp.tashu.or.kr:50041/v1/openapi/station";
+    const apiToken = process.env.TASHU_API_TOKEN;
 
-export default getDirections;
+    console.log("Tashu API 요청 시작");
+    const response = await axios.get(apiUrl, {
+      headers: {
+        "api-token": apiToken,
+      },
+      timeout: 10000,
+    });
+    console.log("Tashu API 응답 받음:", response.data);
+
+    res.json({
+      resultCode: "S-1",
+      msg: "성공",
+      data: response.data,
+    });
+  } catch (error) {
+    console.error("Tashu API 호출 실패:", error);
+    res.status(500).json({
+      resultCode: "F-1",
+      msg: "Tashu API 호출 실패",
+      error: error.message,
+    });
+  }
+  console.log("tashu 함수 종료");
+};
+export { getDirections, tashu };

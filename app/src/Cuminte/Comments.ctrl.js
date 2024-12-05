@@ -62,7 +62,7 @@ const createcomment = async (req, res) => {
     const { comment_text } = req.body; // 댓글 내용
 
     // 3. 날짜 처리 (클라이언트에서 보내지 않은 경우 서버에서 기본값 생성)
-    const comment_date = req.body.comment_date || new Date().toISOString();
+    const comment_date = req.body.comment_date || new Date();
 
     // 4. 세션에서 사용자 정보 가져오기
     const username = req.session.username; // 댓글 작성자 이름

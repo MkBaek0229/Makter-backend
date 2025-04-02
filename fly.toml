@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for maketerbackend on 2024-11-19T21:19:26+09:00
+# fly.toml app configuration file generated for makter-backend on 2025-04-02T16:30:15+09:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'maketerbackend'
+app = 'makter-backend'
 primary_region = 'nrt'
 
 [build]
@@ -11,10 +11,12 @@ primary_region = 'nrt'
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = 'off'
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
 
 [[vm]]
-  size = 'shared-cpu-1x'
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1

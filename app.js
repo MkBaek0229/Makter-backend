@@ -21,31 +21,19 @@ const __dirname = dirname(__filename);
 
 const pool = new Pool({
   user: "postgres",
-  password: "vDSPz2FG01dQkXA",
-  host: "maketerbackendtest.flycast",
+  password: "VlZW9G1lIUthvV9",
+  host: "makterdb.internal",
   database: "postgres",
   port: 5432,
 });
-/*
-Postgres cluster maketerbackendtest created
-  Username:    postgres
-  Password:    vDSPz2FG01dQkXA
-  Hostname:    maketerbackendtest.internal
-  Flycast:     fdaa:5:35ca:0:1::6d
-  Proxy port:  5432
-  Postgres port:  5433
-  Connection string: postgres://postgres:vDSPz2FG01dQkXA@maketerbackendtest.flycast:5432
-*/
+
 const app = express();
 
 app.use(express.json());
 
 app.use(
   cors({
-    origin: [
-      "https://teste-marketer-app.vercel.app", // 배포된 프론트엔드 URL
-      "http://localhost:5173", // 로컬 개발 환경 (필요 시 추가)
-    ],
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -81,6 +69,10 @@ app.use(
 app.set("trust proxy", 1);
 
 app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.send("Hello World");
+});
 
 app.get("/api/directions", getDirections);
 app.get("/api/tashu", tashu);

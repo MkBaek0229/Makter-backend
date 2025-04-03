@@ -27,13 +27,28 @@ const pool = new Pool({
   port: 5432,
 });
 
+// CORS 설정 업데이트
+const allowedOrigins = [
+  "http://localhost:5173", // 로컬 개발환경
+  "https://your-vercel-domain.vercel.app", // Vercel 도메인으로 교체
+  "https://your-custom-domain.com", // 커스텀 도메인이 있다면 추가
+];
+
 const app = express();
 
 app.use(express.json());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      // 요청 출처가 없거나 허용 목록에 있으면 허용
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`Origin ${origin} not allowed by CORS`);
+        callback(new Error("CORS policy violation"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -58,9 +73,9 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "none",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })

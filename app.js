@@ -30,7 +30,7 @@ const pool = new Pool({
 // CORS 설정 업데이트
 const allowedOrigins = [
   "http://localhost:5173", // 로컬 개발환경
-  "https://your-vercel-domain.vercel.app", // Vercel 도메인으로 교체
+  "https://makter-frontend.vercel.app/", // Vercel 도메인으로 교체
   "https://your-custom-domain.com", // 커스텀 도메인이 있다면 추가
 ];
 

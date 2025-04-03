@@ -28,11 +28,18 @@ const pool = new Pool({
 });
 
 // CORS 설정 업데이트
-const allowedOrigins = [
+let allowedOrigins = [
   "http://localhost:5173", // 로컬 개발환경
-  "https://makter-frontend.vercel.app/", // Vercel 도메인으로 교체
-  "https://your-custom-domain.com", // 커스텀 도메인이 있다면 추가
 ];
+
+// FRONTEND_URL 환경 변수에서 URL 추출하여 추가
+if (process.env.FRONTEND_URL) {
+  // 쉼표로 구분된 URL 목록을 배열로 변환
+  const frontendUrls = process.env.FRONTEND_URL.split(",").map((url) =>
+    url.trim()
+  );
+  allowedOrigins = [...allowedOrigins, ...frontendUrls];
+}
 
 const app = express();
 

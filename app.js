@@ -48,6 +48,9 @@ app.use(express.json());
 app.use(
   cors({
     origin: function (origin, callback) {
+      console.log("Request origin:", origin); // 요청 출처 로깅 (중요)
+      console.log("Allowed origins:", allowedOrigins); // 허용된 출처 목록 로깅
+
       // 요청 출처가 없거나 허용 목록에 있으면 허용
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -74,15 +77,17 @@ const isLoggedIn = (req, res, next) => {
   }
 };
 
+const isProduction = process.env.NODE_ENV === "production";
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,
+      secure: isProduction, // 개발환경에서는 HTTP 허용
       httpOnly: true,
-      sameSite: "none",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
